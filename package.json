@@ -11,7 +11,7 @@
     "json2cson",
     "cson2json"
   ],
-  "repository": "https://githu{}b.com/cazala/cson",
+  "repository": "https://github.com/cazala/cson",
   "license": "MIT",
   "engines": {
     "atom": "*"
