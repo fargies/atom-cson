@@ -1,7 +1,7 @@
 {
   "main": "./index.coffee",
   "name": "cson",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Convert JSON to CSON, and vice versa",
   "keywords": [
     "JSON",
