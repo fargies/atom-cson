@@ -1,22 +1,18 @@
 {WorkspaceView} = require 'atom'
 
-describe "pretty json", ->
+describe "CSON Atom Plugin", ->
   [editor, editorView] = []
 
-  prettify = (callback) ->
-    editorView.trigger "pretty-json:prettify"
+  cson2json = (callback) ->
+    editorView.trigger "Convert:CSON to JSON"
     runs(callback)
 
-  minify = (callback) ->
-    editorView.trigger "pretty-json:minify"
-    runs(callback)
-
-  sortedPrettify = (callback) ->
-    editorView.trigger "pretty-json:sort-and-prettify"
+  json2cson = (callback) ->
+    editorView.trigger "Convert:JSON to CSON"
     runs(callback)
 
   beforeEach ->
-    waitsForPromise -> atom.packages.activatePackage('pretty-json')
+    waitsForPromise -> atom.packages.activatePackage('cson')
     waitsForPromise -> atom.packages.activatePackage('language-json')
 
     atom.workspaceView = new WorkspaceView
@@ -25,86 +21,55 @@ describe "pretty json", ->
     editorView = atom.workspaceView.getActiveView()
     editor = editorView.getEditor()
 
-  describe "when no text is selected", ->
-    it "doesn't change anything", ->
-      editor.setText """
-        Start
-        { "a": "b", "c": "d" }
-        End
-      """
-
-      prettify ->
-        expect(editor.getText()).toBe """
-          Start
-          { "a": "b", "c": "d" }
-          End
-        """
-
-  describe "when a valid json text is selected", ->
-    it "formats it correctly", ->
-      editor.setText """
-        Start
-        { "a": "b", "c": "d" }
-        End
-      """
-      editor.setSelectedBufferRange([[1,0], [1, 22]])
-
-      prettify ->
-        expect(editor.getText()).toBe """
-          Start
-          {
-            "a": "b",
-            "c": "d"
-          }
-          End
-        """
-
-  describe "when an invalid json text is selected", ->
-    it "doesn't change anything", ->
-      editor.setText """
-        Start
-        {]
-        End
-      """
-      editor.setSelectedBufferRange([[1,0], [1, 2]])
-
-      prettify ->
-        expect(editor.getText()).toBe """
-          Start
-          {]
-          End
-        """
-
-  describe "JSON file", ->
-    beforeEach ->
-      editor.setGrammar(atom.syntax.selectGrammar('test.json'))
-
-    describe "with invalid JSON", ->
+  describe "JSON -> CSON", ->
+    describe "when no text is selected", ->
       it "doesn't change anything", ->
         editor.setText """
-          {]
-        """
-
-        prettify ->
-          expect(editor.getText()).toBe """
-            {]
-          """
-
-    describe "with valid JSON", ->
-      it "formats the whole file correctly", ->
-        editor.setText """
+          Start
           { "a": "b", "c": "d" }
+          End
         """
-
-        prettify ->
+        cson2json ->
           expect(editor.getText()).toBe """
-            {
-              "a": "b",
-              "c": "d"
-            }
+            Start
+            { "a": "b", "c": "d" }
+            End
           """
 
-    describe "Sort and prettify", ->
+    describe "when a valid json text is selected", ->
+      it "converts it correctly", ->
+        editor.setText """
+          Start
+          { "a": "b", "c": "d" }
+          End
+        """
+        editor.setSelectedBufferRange([[1,0], [1, 22]])
+
+        cson2json ->
+          expect(editor.getText()).toBe """
+            Start
+            a: "b"
+            c: "d"
+            End
+          """
+
+    describe "when an invalid json text is selected", ->
+      it "doesn't change anything", ->
+        editor.setText """
+          Start
+          {]
+          End
+        """
+        editor.setSelectedBufferRange([[1,0], [1, 2]])
+
+        cson2json ->
+          expect(editor.getText()).toBe """
+            Start
+            {]
+            End
+          """
+
+    describe "JSON file", ->
       beforeEach ->
         editor.setGrammar(atom.syntax.selectGrammar('test.json'))
 
@@ -114,73 +79,123 @@ describe "pretty json", ->
             {]
           """
 
-          sortedPrettify ->
+          cson2json ->
             expect(editor.getText()).toBe """
               {]
             """
 
       describe "with valid JSON", ->
-        it "formats the whole file correctly", ->
+        it "converts the whole file correctly", ->
           editor.setText """
-            { "c": "d", "a": "b" }
+            { "a": "b", "c": "d" }
           """
 
-          sortedPrettify ->
+          cson2json ->
             expect(editor.getText()).toBe """
-              {
-                "a": "b",
-                "c": "d"
-              }
+              a: "b"
+              c: "d"
             """
 
-  describe "Minify JSON file", ->
-    beforeEach ->
-      editor.setGrammar(atom.syntax.selectGrammar('test.json'))
+      describe "Sort and prettify", ->
+        beforeEach ->
+          editor.setGrammar(atom.syntax.selectGrammar('test.json'))
 
-    it "Returns same string from invalid JSON", ->
-      editor.setText """
-        {
-          [
-        }
-      """
+        describe "with invalid JSON", ->
+          it "doesn't change anything", ->
+            editor.setText """
+              {]
+            """
 
-      minify ->
-        expect(editor.getText()).toBe """
-          {
-            [
-          }
-        """
+            sortedPrettify ->
+              expect(editor.getText()).toBe """
+                {]
+              """
 
-    it "Minifies valid JSON", ->
-      editor.setText """
-        {
-          "a": "b",
-          "c": "d",
-          "num": 123
-        }
-      """
+        describe "with valid JSON", ->
+          it "converts the whole file correctly", ->
+            editor.setText """
+              { "c": "d", "a": "b" }
+            """
 
-      minify ->
-        expect(editor.getText()).toBe """
-          {"a":"b","c":"d","num":123}
-        """
+            sortedPrettify ->
+              expect(editor.getText()).toBe """
+                {
+                  "a": "b",
+                  "c": "d"
+                }
+              """
 
-  describe "Minify selected JSON", ->
-    it "Minifies JSON data", ->
-      editor.setText """
-        Start
-        {
-          "a": "b",
-          "c": "d",
-          "num": 123
-        }
-        End
-      """
-      editor.setSelectedBufferRange([[1,0], [5, 1]])
-
-      minify ->
-        expect(editor.getText()).toBe """
+  describe "CSON -> JSON", ->
+    describe "when no text is selected", ->
+      it "doesn't change anything", ->
+        editor.setText """
           Start
-          {"a":"b","c":"d","num":123}
+          { "a": "b", "c": "d" }
           End
         """
+        json2cson ->
+          expect(editor.getText()).toBe """
+            Start
+            { "a": "b", "c": "d" }
+            End
+          """
+
+    describe "when a valid cson text is selected", ->
+      it "converts it correctly", ->
+        editor.setText """
+          Start
+          a: "b"
+          c: "d"
+          End
+        """
+        editor.setSelectedBufferRange([[1,0], [1, 22]])
+
+        json2cson ->
+          expect(editor.getText()).toBe """
+            Start
+            { "a": "b", "c": "d" }
+            End
+          """
+
+    describe "when an invalid cson text is selected", ->
+      it "doesn't change anything", ->
+        editor.setText """
+          Start
+          {]
+          End
+        """
+        editor.setSelectedBufferRange([[1,0], [1, 2]])
+
+        json2cson ->
+          expect(editor.getText()).toBe """
+            Start
+            {]
+            End
+          """
+
+    describe "CSON file", ->
+      beforeEach ->
+        editor.setGrammar(atom.syntax.selectGrammar('test.json'))
+
+      describe "with invalid CSON", ->
+        it "doesn't change anything", ->
+          editor.setText """
+            {]
+          """
+
+          json2cson ->
+            expect(editor.getText()).toBe """
+              {]
+            """
+
+      describe "with valid CSON", ->
+        it "converts the whole file correctly", ->
+          editor.setText """
+            a: "b"
+            c: "d"
+          """
+
+          json2cson ->
+            expect(editor.getText()).toBe """
+              { "a": "b", "c": "d" }
+            """

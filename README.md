@@ -1,8 +1,8 @@
-Pretty JSON
-===========
+CSON
+====
 
-[Atom](http://atom.io/) plugin. Format JSON documents.
+[Atom](http://atom.io/) plugin. Convert JSON to CSON, and vice versa.
 
-![](http://i.imgur.com/Nd4GvtP.gif)
+Just select the text to convert and select the convert to CSON/JSON command. In a JSON or CSON file, it converts the whole file.
 
-Just select the text to format and select the prettify command. In a JSON file, it formats the whole file.
+This uses the [CSON](https://www.npmjs.com/package/cson) npm package.

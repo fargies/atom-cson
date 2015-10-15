@@ -1,24 +1,23 @@
 {
   "main": "./index.coffee",
-  "name": "pretty-json",
-  "version": "0.4.1",
-  "description": "Format JSON",
+  "name": "cson",
+  "version": "0.0.0",
+  "description": "Convert JSON to CSON, and vice versa",
   "keywords": [
     "JSON",
-    "format",
-    "pretty",
-    "prettify",
-    "minify",
-    "uglify"
+    "CSON",
+    "convert",
+    "parser",
+    "json2cson",
+    "cson2json"
   ],
-  "repository": "https://github.com/federomero/pretty-json",
+  "repository": "https://githu{}b.com/cazala/cson",
   "license": "MIT",
   "engines": {
     "atom": "*"
   },
   "dependencies": {
-    "json-stable-stringify": "~0.1.1",
-    "jsonminify": "^0.2.3"
+    "cson": "~3.0.2"
   },
   "scripts": {}
 }

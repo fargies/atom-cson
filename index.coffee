@@ -1,30 +1,39 @@
-stringify = require("json-stable-stringify")
-uglify = require("jsonminify")
-formatter = {}
+CSON = require("cson")
+parser = {}
 
-prettify = (editor, sorted) ->
-  wholeFile = editor.getGrammar().name == 'JSON'
-
-  if wholeFile
-    text = editor.getText()
-    editor.setText(formatter.pretty(text, sorted))
-  else
-    text = editor.replaceSelectedText({}, (text) ->
-      formatter.pretty(text, sorted)
-    )
-
-minify = (editor, sorted) ->
-  wholeFile = editor.getGrammar().name == 'JSON'
+json2cson = (editor) ->
+  grammar = editor.getGrammar().name
+  wholeFile = grammar == 'JSON' || grammar == 'CSON'
 
   if wholeFile
     text = editor.getText()
-    editor.setText(formatter.minify(text))
+    editor.setText(parser.toCSON(text))
   else
     text = editor.replaceSelectedText({}, (text) ->
-      formatter.minify(text);
+      parser.toCSON(text)
     )
 
-formatter.pretty = (text, sorted) ->
+cson2json = (editor) ->
+  grammar = editor.getGrammar().name
+  wholeFile = grammar == 'CSON' || grammar == 'JSON'
+
+  if wholeFile
+    text = editor.getText()
+    editor.setText(parser.toJSON(text))
+  else
+    text = editor.replaceSelectedText({}, (text) ->
+      parser.toJSON(text);
+    )
+
+parser.toCSON = (text) ->
+  try
+    parsed = JSON.parse(text)
+    CSON.stringify(parsed)
+  catch error
+    text;
+
+parser.toJSON = (text) ->
+
   editorSettings = atom.config.get('editor')
   if editorSettings.softTabs?
     space = Array(editorSettings.tabLength + 1).join(" ")
@@ -32,30 +41,17 @@ formatter.pretty = (text, sorted) ->
     space = "\t"
 
   try
-    parsed = JSON.parse(text)
-    if sorted
-      return stringify(parsed, { space: space })
-    else
-      return JSON.stringify(parsed, null, space)
-  catch error
-    text
-
-formatter.minify = (text) ->
-  try
-    JSON.parse(text)
-    uglify(text);
+    parsed = CSON.parse(text)
+    JSON.stringify(parsed, null, space)
   catch error
     text;
 
 module.exports =
   activate: ->
     atom.commands.add 'atom-workspace',
-      'pretty-json:prettify': ->
+      'Convert:JSON to CSON': ->
         editor = atom.workspace.getActiveTextEditor()
-        prettify(editor)
-      'pretty-json:sort-and-prettify': ->
+        json2cson(editor)
+      'Convert:CSON to JSON': ->
         editor = atom.workspace.getActiveTextEditor()
-        prettify(editor, true)
-      'pretty-json:minify': ->
-        editor = atom.workspace.getActiveTextEditor()
-        minify(editor, true)
+        cson2json(editor)
