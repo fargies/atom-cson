@@ -1,6 +1,12 @@
 CSON = require("cson")
 parser = {}
 
+space = (scope) ->
+  if atom.config.get('editor.softTabs', scope: [scope])?
+    Array(atom.config.get('editor.tabLength', scope: [scope]) + 1).join(" ")
+  else
+    "\t"
+
 json2cson = (editor) ->
   grammar = editor.getGrammar().name
   wholeFile = grammar == 'JSON' || grammar == 'CSON'
@@ -28,21 +34,14 @@ cson2json = (editor) ->
 parser.toCSON = (text) ->
   try
     parsed = JSON.parse(text)
-    CSON.stringify(parsed)
+    CSON.stringify(parsed, null, space('source.coffee'))
   catch error
     text;
 
 parser.toJSON = (text) ->
-
-  editorSettings = atom.config.get('editor')
-  if editorSettings.softTabs?
-    space = Array(editorSettings.tabLength + 1).join(" ")
-  else
-    space = "\t"
-
   try
     parsed = CSON.parse(text)
-    JSON.stringify(parsed, null, space)
+    JSON.stringify(parsed, null, space('source.json'))
   catch error
     text;
 
